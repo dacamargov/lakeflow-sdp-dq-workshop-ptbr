@@ -224,20 +224,46 @@ explicitamente, para que o Genie use os idioms do SDP.
 
 ---
 
-## 6. Estrutura do repo
+## 6. Módulos avançados de SDP (opcional)
+
+Quer ir além do medallion básico? O guia
+**[`docs/modulos-avancados-sdp.md`](docs/modulos-avancados-sdp.md)** traz 9 módulos extras com
+prompts prontos para Genie code, explorando o que o Lakeflow SDP tem de mais interessante:
+
+1. **CDC / SCD Tipo 2** com `AUTO CDC` (historizar mudanças de clientes sem MERGE) ⭐
+2. **Quarentena** de dados ruins (rotear em vez de descartar) ⭐
+3. **Observabilidade** com o **Event Log** do pipeline (injetado vs. detectado) ⭐
+4. **Ingestão incremental** (streaming de verdade: só processa o que chegou)
+5. **Evolução de schema** (coluna nova absorvida automaticamente)
+6. **Qualidade dirigida por metadados** (regras numa tabela de config)
+7. **Append flows** (unificar várias fontes numa streaming table)
+8. **Genie Space** sobre a camada gold (fecha o tema "Genie")
+9. **Dashboard AI/BI** sobre a gold
+
+Os módulos 1, 4 e 5 precisam de um **segundo lote de dados**: rode o notebook
+**[`notebooks/02_lote_incremental.py`](notebooks/02_lote_incremental.py)** depois do `01`. Ele
+**não apaga** o landing; apenas adiciona arquivos `*_lote2` com uma coluna nova (`cupom_desconto`) e
+versões atualizadas de clientes (para o SCD2). Execução igual à do notebook 01 (rode a primeira
+célula para habilitar os widgets, confirme o `catalogo`, *Run all*).
+
+---
+
+## 7. Estrutura do repo
 
 ```
 lakeflow-sdp-dq-workshop-ptbr/
 ├── README.md
 ├── docs/
-│   └── pre-requisitos-admin.md     # o que o admin do cliente deve preparar (permissões, grupo, compute)
+│   ├── pre-requisitos-admin.md     # o que o admin do cliente deve preparar (permissões, grupo, compute)
+│   └── modulos-avancados-sdp.md    # 9 módulos avançados com prompts de Genie code
 └── notebooks/
-    └── 01_gerar_dados_varejo.py    # o único passo que os participantes executam
+    ├── 01_gerar_dados_varejo.py    # o único passo obrigatório que os participantes executam
+    └── 02_lote_incremental.py      # lote incremental (opcional): CDC/SCD2, evolução de schema
 ```
 
 ---
 
-## 7. Validado de ponta a ponta
+## 8. Validado de ponta a ponta
 
 O gerador foi testado end-to-end num workspace serverless: escreve os 5 datasets no volume, relê e
 confirma que as contagens batem. Exemplo de execução (com `n_clientes=800`, `n_pedidos=4000`):
