@@ -1,8 +1,8 @@
-# Módulos avançados de Lakeflow SDP (opcional)
+# Recursos de Lakeflow SDP além do medallion
 
-Depois de construir o pipeline básico bronze → silver → gold (ver `README.md`, seção 5), estes
-módulos levam o workshop ao que o **Lakeflow SDP** tem de mais interessante. Todos continuam sendo
-feitos **com Genie code** dentro do pipeline.
+Depois de construir o pipeline bronze → silver → gold (ver `README.md`, seção 5), esta é a segunda
+metade do workshop: os recursos que fazem o Lakeflow SDP valer a pena. Todos continuam sendo feitos
+com Genie code dentro do pipeline.
 
 > 🔁 **Pré-requisito de dados:** os módulos de **ingestão incremental**, **evolução de schema** e
 > **CDC/SCD2** precisam de um segundo lote de dados. Rode o notebook
@@ -15,8 +15,7 @@ schema `lakeflow_workshop_<usuario>`.
 
 ---
 
-## 1. CDC / SCD Tipo 2 com `AUTO CDC` ⭐
-
+## 1. CDC / SCD Tipo 2 com `AUTO CDC`
 A feature mais marcante do SDP: historizar mudanças de uma dimensão **sem escrever MERGE**. Use as
 versões atualizadas de clientes que o notebook 02 gera.
 
@@ -31,8 +30,7 @@ versões atualizadas de clientes que o notebook 02 gera.
 
 ---
 
-## 2. Quarentena de dados ruins (não só descartar) ⭐
-
+## 2. Quarentena de dados ruins (não só descartar)
 Em vez de `expect_or_drop` (que joga fora a linha), roteie as linhas ruins para uma tabela de
 quarentena para auditoria/reprocessamento.
 
@@ -46,8 +44,7 @@ quarentena para auditoria/reprocessamento.
 
 ---
 
-## 3. Observabilidade com o Event Log do pipeline ⭐
-
+## 3. Observabilidade com o Event Log do pipeline
 O SDP grava um **event log** com métricas de cada expectativa. Dá para publicá-lo como tabela e
 fechar o ciclo de qualidade.
 

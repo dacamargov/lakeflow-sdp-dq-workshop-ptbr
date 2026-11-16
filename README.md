@@ -1,19 +1,20 @@
 # Workshop · Lakeflow SDP + Data Quality com Genie code
 
-Workshop hands-on para construir um pipeline de dados **de ponta a ponta com Databricks Lakeflow
-Spark Declarative Pipelines (SDP)** e **regras de qualidade de dados**, mas com uma reviravolta:
-**todo o pipeline é construído com Genie code** (Databricks Assistant), sem escrever o código à
-mão.
+Workshop hands-on para construir um pipeline de dados completo com Databricks Lakeflow Spark
+Declarative Pipelines (SDP) e qualidade de dados, tudo com Genie code (Databricks Assistant) e sem
+escrever o código à mão.
 
-A ideia é simples:
+O percurso é o seguinte:
 
-1. **Você executa um único notebook** que gera dados sintéticos crus de um varejista brasileiro
-   fictício (**Mercado Verde**) e os deixa como arquivos num volume do Unity Catalog.
-2. **A partir daí, você constrói o pipeline com Genie code**: bronze → silver → gold, com
-   expectativas de qualidade (`@dlt.expect`), deduplicação, normalização e métricas.
+1. Você roda um notebook que gera dados crus de um varejista brasileiro fictício (Mercado Verde) e
+   os deixa como arquivos num volume do Unity Catalog.
+2. A partir daí, constrói o pipeline com Genie code. Primeiro o medallion bronze → silver → gold
+   com expectativas de qualidade, deduplicação e métricas; depois os recursos que fazem o SDP valer
+   a pena: CDC/SCD2, quarentena de dados, observabilidade pelo event log, ingestão incremental e
+   evolução de schema.
 
-Cada participante roda o notebook **no seu próprio workspace**, por isso **tudo é parametrizado** e
-não há nada fixo no código.
+Cada pessoa roda o notebook no seu próprio workspace, então tudo é parametrizado — não há nada fixo
+no código.
 
 ---
 
@@ -66,7 +67,7 @@ automaticamente de `current_user()` (`lakeflow_workshop_{usuario}`), com seu pr�
 
 ```
 dacamargovws_catalog                          ← único recurso compartilhado
-├── lakeflow_workshop_daniel_vargas           ← schema por usuário
+├── lakeflow_workshop_ana_souza               ← schema por usuário
 │   ├── landing/                              ← volume por usuário (dentro do seu schema)
 │   ├── _log_geracao
 │   └── (bronze/silver/gold que você cria com Genie code)   ← suas tabelas, isoladas
@@ -80,8 +81,8 @@ Por que assim: tendo cada um o seu próprio schema, **as tabelas do pipeline que
 depois com Genie code ficam isoladas** e o catálogo não vira um pântano de tabelas de todo mundo.
 Cada participante só precisa de `USE CATALOG` + `CREATE SCHEMA` sobre o catálogo compartilhado.
 
-> Exemplo real (validado) para `daniel.vargas@databricks.com`:
-> `dacamargovws_catalog.lakeflow_workshop_daniel_vargas` · volume `landing`.
+> Por exemplo, para `ana.souza@empresa.com` o destino seria
+> `<catalogo>.lakeflow_workshop_ana_souza`, com o volume `landing` dentro.
 
 Para fixar por variável de ambiente (por exemplo num cluster ou job):
 
@@ -224,27 +225,28 @@ explicitamente, para que o Genie use os idioms do SDP.
 
 ---
 
-## 6. Módulos avançados de SDP (opcional)
+## 6. Recursos de SDP além do medallion
 
-Quer ir além do medallion básico? O guia
-**[`docs/modulos-avancados-sdp.md`](docs/modulos-avancados-sdp.md)** traz 9 módulos extras com
-prompts prontos para Genie code, explorando o que o Lakeflow SDP tem de mais interessante:
+Com o pipeline base no ar, o workshop segue para os recursos que realmente diferenciam o Lakeflow
+SDP. O roteiro completo, com os prompts prontos para o Genie code, está em
+[`docs/modulos-avancados-sdp.md`](docs/modulos-avancados-sdp.md):
 
-1. **CDC / SCD Tipo 2** com `AUTO CDC` (historizar mudanças de clientes sem MERGE) ⭐
-2. **Quarentena** de dados ruins (rotear em vez de descartar) ⭐
-3. **Observabilidade** com o **Event Log** do pipeline (injetado vs. detectado) ⭐
-4. **Ingestão incremental** (streaming de verdade: só processa o que chegou)
-5. **Evolução de schema** (coluna nova absorvida automaticamente)
-6. **Qualidade dirigida por metadados** (regras numa tabela de config)
-7. **Append flows** (unificar várias fontes numa streaming table)
-8. **Genie Space** sobre a camada gold (fecha o tema "Genie")
-9. **Dashboard AI/BI** sobre a gold
+1. CDC / SCD Tipo 2 com `AUTO CDC` — historizar mudanças de clientes sem escrever MERGE.
+2. Quarentena de dados ruins — rotear as linhas que falham, em vez de descartá-las.
+3. Observabilidade pelo event log do pipeline — comparar injetado vs. detectado.
+4. Ingestão incremental — processar só o que chegou de novo.
+5. Evolução de schema — absorver uma coluna nova sem quebrar o pipeline.
+6. Qualidade dirigida por metadados — regras numa tabela de configuração.
+7. Append flows — unificar várias fontes numa mesma streaming table.
+8. Genie Space sobre a camada gold — perguntar em linguagem natural.
+9. Dashboard AI/BI sobre a camada gold.
 
-Os módulos 1, 4 e 5 precisam de um **segundo lote de dados**: rode o notebook
-**[`notebooks/02_lote_incremental.py`](notebooks/02_lote_incremental.py)** depois do `01`. Ele
-**não apaga** o landing; apenas adiciona arquivos `*_lote2` com uma coluna nova (`cupom_desconto`) e
-versões atualizadas de clientes (para o SCD2). Execução igual à do notebook 01 (rode a primeira
-célula para habilitar os widgets, confirme o `catalogo`, *Run all*).
+Os recursos de CDC/SCD2, ingestão incremental e evolução de schema trabalham sobre um segundo lote
+de dados. Para gerá-lo, rode o notebook
+[`notebooks/02_lote_incremental.py`](notebooks/02_lote_incremental.py) depois do `01`: ele preserva
+o landing e só acrescenta arquivos novos (com a coluna `cupom_desconto` e versões atualizadas de
+clientes). Roda igual ao notebook 01 — primeira célula para habilitar os widgets, confirme o
+`catalogo` e *Run all*.
 
 ---
 
@@ -254,28 +256,9 @@ célula para habilitar os widgets, confirme o `catalogo`, *Run all*).
 lakeflow-sdp-dq-workshop-ptbr/
 ├── README.md
 ├── docs/
-│   ├── pre-requisitos-admin.md     # o que o admin do cliente deve preparar (permissões, grupo, compute)
-│   └── modulos-avancados-sdp.md    # 9 módulos avançados com prompts de Genie code
+│   ├── pre-requisitos-admin.md     # o que o admin do cliente prepara (permissões, grupo, compute)
+│   └── modulos-avancados-sdp.md    # roteiro de recursos de SDP com os prompts de Genie code
 └── notebooks/
-    ├── 01_gerar_dados_varejo.py    # o único passo obrigatório que os participantes executam
-    └── 02_lote_incremental.py      # lote incremental (opcional): CDC/SCD2, evolução de schema
+    ├── 01_gerar_dados_varejo.py    # gera os dados crus de varejo no seu volume
+    └── 02_lote_incremental.py      # segundo lote: alimenta CDC/SCD2, incremental e evolução de schema
 ```
-
----
-
-## 8. Validado de ponta a ponta
-
-O gerador foi testado end-to-end num workspace serverless: escreve os 5 datasets no volume, relê e
-confirma que as contagens batem. Exemplo de execução (com `n_clientes=800`, `n_pedidos=4000`):
-
-| Entidade | Linhas |
-|---|---|
-| clientes | ~825 |
-| produtos | 43 |
-| lojas | 25 |
-| pedidos | ~4.048 |
-| pedidos_itens | ~17.900 |
-
-E os problemas de qualidade ficam presentes e consultáveis (exemplo sobre `pedidos`): valores não
-numéricos, valores negativos e pedidos com cliente órfão — exatamente o que as suas regras de
-qualidade devem capturar.
