@@ -787,7 +787,7 @@ print(folha)
 # MAGIC ## 13. Continuação: recursos de SDP além do medallion
 # MAGIC
 # MAGIC Depois de montar bronze/silver/gold, o workshop segue para o melhor do Lakeflow SDP — tudo com
-# MAGIC Genie code. O roteiro com os prompts está em **`docs/modulos-avancados-sdp.md`**:
+# MAGIC Genie code. O roteiro com os prompts está na **seção 6 do README**:
 # MAGIC
 # MAGIC - CDC / SCD Tipo 2 com `AUTO CDC`
 # MAGIC - Quarentena de dados ruins (rotear em vez de descartar)
