@@ -216,6 +216,14 @@ explicitamente, para que o Genie use os idioms do SDP.
 > loja e por categoria. Use `CLUSTER BY` em vez de particionar."
 
 **Observabilidade de qualidade:**
+
+É o **boletim de notas** da sua camada de qualidade. Cruza os erros que o notebook 01 injetou de
+propósito (registrados em `_log_geracao`) contra os que suas expectativas realmente pegaram, para
+responder *as minhas regras estão pegando a sujeira que plantei?*. O resultado é uma tabela
+consultável —`injetado | detectado | % detecção` por regra— que você pode plotar e compartilhar. Em
+produção, onde você não tem essa "verdade" injetada, o mesmo padrão serve para **monitorar a taxa de
+falhas por regra ao longo do tempo** e detectar quando uma fonte se degrada.
+
 > "Com Lakeflow SDP, crie a camada de observabilidade de qualidade: primeiro publique o event log do
 > pipeline no Unity Catalog (na configuração do pipeline, como tabela dentro do seu schema) e depois
 > crie uma view em SQL que leia essa tabela do event log e publique, por dataset e por expectativa,
@@ -228,8 +236,8 @@ explicitamente, para que o Genie use os idioms do SDP.
 > `event_log(...)` direta só pode ser lida pelo owner do pipeline. Uma **view normal** sempre reflete
 > a última execução terminada (uma materializada ficaria uma atualização atrasada).
 
-> O objetivo pedagógico: ver como o Genie code monta o DAG, a incrementalidade e a qualidade
-> declarativa com muito menos código do que um pipeline tradicional.
+> O objetivo pedagógico de toda esta seção: ver como o Genie code monta o DAG, a incrementalidade e
+> a qualidade declarativa com muito menos código do que um pipeline tradicional.
 
 ---
 
