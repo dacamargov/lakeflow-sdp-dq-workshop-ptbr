@@ -216,9 +216,17 @@ explicitamente, para que o Genie use os idioms do SDP.
 > loja e por categoria. Use `CLUSTER BY` em vez de particionar."
 
 **Observabilidade de qualidade:**
-> "Com Lakeflow SDP, crie a camada de observabilidade de qualidade com uma tabela que publique as
-> métricas das expectativas do pipeline e a compare contra
-> `{catalogo}.lakeflow_workshop_{usuario}._log_geracao` para mostrar *injetado vs. detectado*."
+> "Com Lakeflow SDP, crie a camada de observabilidade de qualidade: primeiro publique o event log do
+> pipeline no Unity Catalog (na configuração do pipeline, como tabela dentro do seu schema) e depois
+> crie uma view em SQL que leia essa tabela do event log e publique, por dataset e por expectativa,
+> quantos registros passaram e quantos falharam, comparando-os contra
+> `{catalogo}.lakeflow_workshop_{usuario}._log_geracao` para mostrar *injetado vs. detectado*.
+> Calcule os contagens ao vivo a partir das tabelas (sem números fixos) e use uma view normal, não
+> materializada."
+
+> 💡 Publicar o event log no UC o deixa como **tabela consultável e compartilhável**; a função
+> `event_log(...)` direta só pode ser lida pelo owner do pipeline. Uma **view normal** sempre reflete
+> a última execução terminada (uma materializada ficaria uma atualização atrasada).
 
 > O objetivo pedagógico: ver como o Genie code monta o DAG, a incrementalidade e a qualidade
 > declarativa com muito menos código do que um pipeline tradicional.
@@ -261,38 +269,16 @@ No fim, `count(pedidos_validos) + count(pedidos_quarentena)` = total da bronze: 
 
 ## 8. Observabilidade com o Event Log do pipeline
 
-O SDP grava um event log com as métricas de cada expectativa (quantos registros passam e falham por
-dataset). Para fechar o ciclo de qualidade, publique-o no Unity Catalog como tabela consultável e
-compare-o contra os erros que você injetou.
+O SDP grava um event log com as métricas de cada expectativa; publique-o como tabela para fechar o
+ciclo de qualidade.
 
-**Passo 1 — Publique o event log no Unity Catalog.** Na configuração do pipeline (**Settings →
-Advanced**, ou o JSON do pipeline) adicione um destino para o event log no seu próprio schema:
+> "Com Lakeflow SDP, crie uma tabela `qualidade_expectativas` que leia o event log do pipeline
+> (eventos do tipo `flow_progress`) e extraia, por dataset e por expectativa, quantos registros
+> passaram e quantos falharam. Depois crie uma view que compare esses números contra a tabela
+> `_log_geracao` (erros injetados) para mostrar injetado vs. detectado."
 
-```json
-"event_log": {
-  "catalog": "<seu_catalogo>",
-  "schema": "lakeflow_workshop_<usuario>",
-  "name": "event_log_pipeline"
-}
-```
-
-Assim o event log vira uma **tabela normal** no seu schema: consultável e compartilhável. A função
-`event_log(...)` direta só pode ser lida pelo owner do pipeline e não pode ser compartilhada, por
-isso publicá-lo é o caminho recomendado.
-
-**Passo 2 — Construa a observabilidade com Genie code:**
-> "Com Lakeflow SDP, crie uma view em SQL `qualidade_expectativas` que leia a tabela do event log
-> publicado (eventos do tipo `flow_progress`) e extraia, por dataset e por expectativa, quantos
-> registros passaram e quantos falharam na última atualização terminada. Depois compare-a contra a
-> tabela `_log_geracao` (erros injetados) para mostrar injetado vs. detectado, com a diferença e o %
-> de detecção. Calcule todos os contagens ao vivo a partir das tabelas (incluindo os duplicados,
-> como bronze menos silver): não deixe nenhum número fixo no SQL. Use uma **view normal** (não
-> materializada) para que sempre reflita a última execução terminada."
-
-> 💡 Uma view normal é calculada ao consultá-la, então sempre mostra a última atualização terminada;
-> uma view materializada se atualizaria durante a mesma execução que ainda está escrevendo o event
-> log e ficaria uma atualização atrasada. Na primeira execução a view estará vazia até o pipeline
-> terminar — é o esperado.
+O event log é consultado com a função `event_log(...)`:
+`SELECT * FROM event_log(TABLE(<tabela_do_pipeline>))`.
 
 ## 9. Ingestão incremental (streaming de verdade)
 
