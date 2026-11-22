@@ -334,6 +334,23 @@ quebrar.
 que não a traziam) e **preenchida nas novas** (lote 2). O Auto Loader pode reiniciar o update ao
 detectar a mudança de schema e retomá-lo sozinho — é o comportamento esperado, não um erro.
 
+### Modo live (opcional): ver ao vivo com um fluxo contínuo
+
+O lote 2 demonstra a ingestão incremental (ponto 9) e a evolução de schema (ponto 10) de forma
+**estática**: você solta os arquivos e re-executa. Se quiser ver **ao vivo** —arquivos caindo a cada
+poucos segundos e o Auto Loader reagindo— rode o notebook
+[`notebooks/03_fluxo_continuo.py`](notebooks/03_fluxo_continuo.py).
+
+Durante uma janela limitada ele escreve pequenas tandas de pedidos novos no landing a cada
+`intervalo_segundos`, e **a partir da tanda `tanda_nova_coluna` passa a incluir uma coluna nova
+(`canal_captacao`)**. Coloque seu pipeline em **modo contínuo** (Settings → *Continuous*) e inicie-o;
+você verá no event log como ele ingere só as tandas novas e como absorve a coluna nova quando ela
+aparece.
+
+> ⚠️ É um modo de **demonstração** (ideal para o apresentador conduzir). Roda por `duracao_minutos` e
+> para sozinho; se colocar o pipeline em contínuo, **desligue-o ao terminar** para não deixar compute
+> ligado.
+
 ## 11. Qualidade dirigida por metadados
 
 **O que é.** Em vez de escrever cada expectativa fixa no código, você as *define como dados* numa
@@ -403,5 +420,6 @@ lakeflow-sdp-dq-workshop-ptbr/
 │   └── pre-requisitos-admin.md     # o que o admin do cliente prepara (permissões, grupo, compute)
 └── notebooks/
     ├── 01_gerar_dados_varejo.py    # gera os dados crus de varejo no seu volume
-    └── 02_lote_incremental.py      # segundo lote: alimenta CDC/SCD2, incremental e evolução de schema
+    ├── 02_lote_incremental.py      # segundo lote: alimenta CDC/SCD2, incremental e evolução de schema
+    └── 03_fluxo_continuo.py        # (opcional) modo live: pedidos a cada poucos segundos + coluna nova ao vivo
 ```
