@@ -204,11 +204,13 @@ explicitamente, para que o Genie use os idioms do SDP.
 > colunas como string e adicione colunas de linhagem com o nome do arquivo e a data de ingestão."
 
 **Silver (tipagem, normalização e expectativas de qualidade):**
-> "Com Lakeflow SDP, crie a camada silver com tabelas que tipem e normalizem cada entidade a partir
-> das tabelas bronze. Adicione expectativas de qualidade (expectations do SDP): email com formato
-> válido, `valor_total` numérico e >= 0, `data_pedido` não futura, `desconto_pct` entre 0 e 100,
-> quantidades > 0, e que `id_cliente` e `id_loja` existam nas suas dimensões. Normalize o estado
-> para a sigla de UF (2 letras) e deduplique clientes e produtos."
+> "Com Lakeflow SDP, crie a camada silver a partir das tabelas bronze: uma tabela por entidade, com
+> cada coluna convertida ao seu tipo correto (datas, números e textos) e os valores normalizados.
+> Adicione expectativas de qualidade do SDP que validem que: o email do cliente tem formato válido;
+> o valor total do pedido é numérico e não negativo; a data do pedido não está no futuro; o desconto
+> está entre 0 e 100; as quantidades são maiores que zero; e que cada pedido aponta para um cliente e
+> uma loja que existem nas suas dimensões. Por fim, normalize o estado para a sigla de UF (2 letras)
+> e remova os clientes e produtos duplicados."
 
 **Gold (modelo dimensional e métricas):**
 > "Com Lakeflow SDP, crie a camada gold a partir das tabelas silver, com tabelas de dimensões limpas
@@ -224,17 +226,21 @@ consultável —`injetado | detectado | % detecção` por regra— que você pod
 produção, onde você não tem essa "verdade" injetada, o mesmo padrão serve para **monitorar a taxa de
 falhas por regra ao longo do tempo** e detectar quando uma fonte se degrada.
 
-> "Com Lakeflow SDP, crie a camada de observabilidade de qualidade: primeiro publique o event log do
-> pipeline no Unity Catalog (na configuração do pipeline, como tabela dentro do seu schema) e depois
-> crie uma view em SQL que leia essa tabela do event log e publique, por dataset e por expectativa,
-> quantos registros passaram e quantos falharam, comparando-os contra
-> `{catalogo}.lakeflow_workshop_{usuario}._log_geracao` para mostrar *injetado vs. detectado*.
-> Calcule os contagens ao vivo a partir das tabelas (sem números fixos) e use uma view normal, não
-> materializada."
+> "Com Lakeflow SDP, crie a camada de observabilidade de qualidade. Crie uma view em SQL que leia o
+> event log do pipeline —o registro que o SDP grava sozinho em cada execução— e mostre, para cada
+> tabela e cada expectativa, quantos registros passaram e quantos falharam na última execução. Depois
+> compare esses números com a tabela
+> `{catalogo}.lakeflow_workshop_{usuario}._log_geracao`, onde o notebook 01 anotou quantos erros
+> injetou de propósito, para mostrar lado a lado *injetado vs. detectado* por regra. Calcule todas as
+> contagens ao vivo a partir das tabelas (sem números fixos) e use uma view normal, não materializada,
+> para que sempre reflita a última execução."
 
-> 💡 Publicar o event log no UC o deixa como **tabela consultável e compartilhável**; a função
-> `event_log(...)` direta só pode ser lida pelo owner do pipeline. Uma **view normal** sempre reflete
-> a última execução terminada (uma materializada ficaria uma atualização atrasada).
+> 💡 A view lê o event log **diretamente** do pipeline: funciona na hora para o dono do pipeline e
+> sempre mostra a última execução, sem passos extras de configuração. Se além disso você quiser deixar
+> o event log como uma tabela que outras pessoas possam consultar, pode publicá-lo no Unity Catalog em
+> **Settings → Advanced → Event logs**; nesse caso use sempre um **nome de tabela novo e livre** (se o
+> nome já existir, o pipeline não o adota e continua escrevendo no seu registro interno). Para o
+> workshop, ler o event log diretamente é o mais simples e confiável.
 
 > O objetivo pedagógico de toda esta seção: ver como o Genie code monta o DAG, a incrementalidade e
 > a qualidade declarativa com muito menos código do que um pipeline tradicional.
