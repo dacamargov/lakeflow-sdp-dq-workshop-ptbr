@@ -281,15 +281,18 @@ variante, peça uma versão SCD Tipo 1 (`dim_clientes_atual`) para comparar: ali
 
 > 💡 Se o Genie code gerar a tabela **sem** `__START_AT` / `__END_AT` (ex.: uma única linha por
 > cliente, ou colunas de data com nomes próprios como `data_inicio_vigencia`), é porque **não** usou
-> AUTO CDC nativo: ficou como SCD Tipo 1. Verifique com `DESCRIBE TABLE dim_clientes_scd2;` e, se
-> faltar, peça o recurso de novo insistindo em `STORED AS SCD TYPE 2` / `stored_as_scd_type=2`. Para
-> ver o histórico dos clientes com mudanças:
+> AUTO CDC nativo: ficou como SCD Tipo 1. Verifique com
+> `DESCRIBE TABLE {catalogo}.lakeflow_workshop_{usuario}.dim_clientes_scd2;` e, se faltar, peça o
+> recurso de novo insistindo em `STORED AS SCD TYPE 2` / `stored_as_scd_type=2`. Para ver o histórico
+> dos clientes com mudanças (use o caminho completo do **seu** schema):
 >
 > ```sql
 > SELECT id_cliente, segmento, nivel_fidelidade, __START_AT, __END_AT
-> FROM dim_clientes_scd2
+> FROM {catalogo}.lakeflow_workshop_{usuario}.dim_clientes_scd2
 > WHERE id_cliente IN (
->   SELECT id_cliente FROM dim_clientes_scd2 GROUP BY id_cliente HAVING count(*) > 1)
+>   SELECT id_cliente
+>   FROM {catalogo}.lakeflow_workshop_{usuario}.dim_clientes_scd2
+>   GROUP BY id_cliente HAVING count(*) > 1)
 > ORDER BY id_cliente, __START_AT;
 > ```
 
