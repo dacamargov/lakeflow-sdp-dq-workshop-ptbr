@@ -213,9 +213,10 @@ explicitamente, para que o Genie use os idioms do SDP.
 > e remova os clientes e produtos duplicados."
 
 **Gold (modelo dimensional e métricas):**
-> "Com Lakeflow SDP, crie a camada gold a partir das tabelas silver, com tabelas de dimensões limpas
-> de clientes, produtos e lojas, um fato de vendas no grão de linha, e KPIs mensais de vendas por
-> loja e por categoria. Use `CLUSTER BY` em vez de particionar."
+> "Com Lakeflow SDP, crie a camada gold a partir das tabelas silver: tabelas de dimensões limpas de
+> clientes, produtos e lojas; uma tabela de fatos de vendas em que cada linha é um item de pedido (um
+> produto dentro de um pedido); e KPIs mensais de vendas por loja e por categoria. Use `CLUSTER BY`
+> em vez de particionar."
 
 **Observabilidade de qualidade:**
 
