@@ -258,6 +258,15 @@ de dados: rode o notebook [`notebooks/02_lote_incremental.py`](notebooks/02_lote
 depois do `01` (ele preserva o landing e só acrescenta arquivos novos, com a coluna `cupom_desconto`
 e versões atualizadas de clientes). Roda igual ao notebook 01.
 
+> 🔁 **Antes de seguir: o que é um *flow*?** Um *flow* é a unidade que **move dados para uma tabela**
+> (streaming table ou materialized view) no Lakeflow. O detalhe-chave: **tudo o que você já construiu
+> usa flows**, mesmo sem nomeá-los. Quando você definiu uma tabela junto com sua consulta em um único
+> passo (bronze, silver), o SDP criou por baixo um *flow padrão* com o mesmo nome da tabela. Os
+> recursos a seguir são, no fundo, **tipos de flow**: o AUTO CDC do ponto 6 é um flow de captura de
+> mudanças, e os *append flows* do ponto 12 são flows que você pode **definir separadamente** da sua
+> tabela de destino para que **várias fontes alimentem uma mesma tabela**. Tenha isso como o conceito
+> que une todo o pipeline.
+
 ## 6. CDC / SCD Tipo 2 com `AUTO CDC`
 
 **O que é.** *CDC* (Change Data Capture) é capturar as mudanças que chegam de uma fonte (inclusões e
@@ -265,7 +274,8 @@ modificações). *SCD Tipo 2* é a forma de guardar uma dimensão preservando o 
 sobrescrever, fecha a versão antiga e abre uma nova. *AUTO CDC* (em Python, `create_auto_cdc_flow`;
 antes `apply_changes`) é o idiom do SDP que aplica essas mudanças por você, **sem escrever um
 `MERGE`**, sobre as versões atualizadas de
-clientes que o notebook 02 gera.
+clientes que o notebook 02 gera. Em termos de SDP, o AUTO CDC define um **flow de captura de
+mudanças** sobre uma streaming table de destino (outro tipo de flow, além do padrão).
 
 > "Com Lakeflow SDP, crie uma dimensão de clientes `dim_clientes_scd2` do tipo SCD Tipo 2, usando a
 > captura de mudanças automática que o SDP oferece para isso. A partir da tabela bronze de clientes,
@@ -396,9 +406,13 @@ métricas de cada regra aparecem no event log igual às expectativas escritas à
 
 ## 12. Append flows (unificar várias fontes)
 
-**O que é.** Um *append flow* permite que **vários fluxos independentes alimentem uma mesma streaming
-table** sem duplicar a sua definição. Serve para unir fontes que chegam separadas (por região, por
-lote, por sistema) numa única tabela de destino.
+**O que é.** Até aqui cada tabela tinha **um** flow (o que é criado junto com ela). Um *append flow*
+é um flow que você **define separadamente** da sua tabela de destino, o que permite que **várias
+fontes independentes alimentem uma mesma streaming table** sem duplicar a sua definição e **sem full
+refresh**. É a alternativa incremental ao `UNION`: em vez de uma consulta que une tudo (e obriga a
+reprocessar inteiro), você soma um flow por fonte e pode **acrescentar fontes novas sem reprocessar**
+o que já foi carregado. Serve para unir dados que chegam separados (por região, por lote, por
+sistema) numa única tabela de destino.
 
 Simule que cada região chega como um arquivo separado e una tudo numa só streaming table.
 
