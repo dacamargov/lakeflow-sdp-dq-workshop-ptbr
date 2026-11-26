@@ -217,7 +217,15 @@ explicitamente, para que o Genie use os idioms do SDP.
 > "Com Lakeflow SDP, crie a camada gold a partir das tabelas silver: tabelas de dimensões limpas de
 > clientes, produtos e lojas; uma tabela de fatos de vendas em que cada linha é um item de pedido (um
 > produto dentro de um pedido); e KPIs mensais de vendas por loja e por categoria. Use `CLUSTER BY`
-> em vez de particionar."
+> em vez de particionar. Declare também as chaves do modelo estrela: uma `PRIMARY KEY` em cada
+> dimensão e no fato, e uma `FOREIGN KEY` do fato para cada dimensão, para deixar as relações
+> explícitas."
+
+> 💡 No Databricks as `PRIMARY KEY` / `FOREIGN KEY` são **informativas, não forçadas**: não rejeitam
+> linhas órfãs (disso cuidam as expectativas da silver), mas deixam o **modelo estrela explícito** — o
+> Catalog Explorer desenha o diagrama ER e o **Genie Agent** do ponto 13 entende melhor os joins. As
+> colunas de uma `PRIMARY KEY` ficam implicitamente `NOT NULL`, então a chave de cada dimensão deve
+> vir única e não nula desde a silver (a deduplicação já cuida disso).
 
 **Observabilidade de qualidade:**
 
